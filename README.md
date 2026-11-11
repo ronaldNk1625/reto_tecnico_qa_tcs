@@ -20,8 +20,17 @@ reto_tecnico_qa_tcs/
 │   ├── conclusiones.txt            # Hallazgos y conclusiones técnicas (Requerido)
 │   └── conclusiones.md             # Informe técnico detallado
 │
-├── Ejercicio_API/                  # Ejercicio 2: Automatización de APIs (Siguiente fase)
+├── Ejercicio_API/                  # Ejercicio 2: Automatización de APIs con Karate Framework
+│   ├── src/test/java/...           # karate-config.js, features, ApiRunner.java
+│   ├── src/test/resources/...      # Datos JSON y CSV para Scenario Outline
+│   ├── pom.xml                     # Karate 1.4.1 + JUnit 5 + Maven
+│   ├── readme.txt                  # Instrucciones paso a paso de ejecución (Requerido)
+│   ├── README.md                   # Documentación detallada en Markdown
+│   ├── conclusiones.txt            # Hallazgos y conclusiones técnicas (Requerido)
+│   └── conclusiones.md             # Informe técnico detallado
 │
+├── Ejercicio_E2E.zip               # Zip del ejercicio E2E (entregable)
+├── Ejercicio_API.zip               # Zip del ejercicio API (entregable)
 ├── .gitignore                      # Archivos y directorios excluidos de Git
 └── README.md                       # Documentación general de la prueba técnica
 ```
@@ -34,12 +43,30 @@ reto_tecnico_qa_tcs/
 - **Framework Implementado:** **Serenity BDD 4.1.20 + Cucumber 7 + Screenplay Pattern + Java 17 + Maven**
 - **Navegador Soportado:** Google Chrome (Headless y modo visual interactivo)
 - **Estrategia de Datos:** Data-Driven Testing (Gherkin Scenario Outline, JSON y CSV)
-- **Estado de Ejecución:** **100% Exitoso (5/5 tests passing)**
+- **Estado de Ejecución:** ✅ **100% Exitoso (5/5 tests passing)**
 - **Reportes:** 
   - Serenity Living Documentation con capturas de pantalla automáticas (`target/site/serenity/index.html`).
   - Cucumber Reports HTML y JSON (`target/cucumber-reports/`).
 
-👉 Consulte el directorio [`Ejercicio_E2E/`](Ejercicio_E2E/) para las instrucciones detalladas de instalación, ejecución y reportes.
+👉 Consulte el directorio [`Ejercicio_E2E/`](Ejercicio_E2E/) para las instrucciones detalladas.
+
+---
+
+## 📌 Ejercicio 2 - Automatización de APIs (Demoblaze API)
+
+- **API Bajo Prueba:** [api.demoblaze.com](https://api.demoblaze.com) — endpoints `/signup` y `/login`
+- **Framework Implementado:** **Karate Framework 1.4.1 + JUnit 5 + Maven**
+- **Métodos Cubiertos:** POST `/signup` y POST `/login`
+- **Estrategia de Datos:** Data-Driven Testing (Scenario Outline, JSON y CSV)
+- **Estado de Ejecución:** ✅ **100% Exitoso (13/13 escenarios, 26 runs)**
+- **Reporte:** Karate HTML report (`target/karate-reports/karate-summary.html`)
+
+| Feature | Escenarios | Estado |
+|---------|-----------|--------|
+| signup.feature | 6 | ✅ Todos pasaron |
+| login.feature | 7 | ✅ Todos pasaron |
+
+👉 Consulte el directorio [`Ejercicio_API/`](Ejercicio_API/) para las instrucciones detalladas.
 
 ---
 

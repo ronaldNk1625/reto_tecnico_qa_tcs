@@ -1,0 +1,78 @@
+CONCLUSIONES - EJERCICIO 2: API AUTOMATION CON KARATE FRAMEWORK
+===============================================================
+
+OPINIONES GENERALES
+-------------------
+Karate Framework resultó ser una elección excelente para automatización de APIs
+REST. A diferencia de RestAssured (requiere mucho código Java) o Postman/Newman,
+Karate permite escribir tests en Gherkin con sintaxis propia, lo que facilita la
+lectura y el mantenimiento por parte de cualquier miembro del equipo QA.
+
+HALLAZGOS TÉCNICOS
+------------------
+
+1. LA API RETORNA HTTP 200 SIEMPRE (incluso en errores)
+   Esto va en contra de las buenas practicas REST donde se esperaria:
+   - 201 Created para registro exitoso
+   - 409 Conflict para usuario duplicado
+   - 401 Unauthorized para credenciales invalidas
+   IMPACTO: Las validaciones deben hacerse sobre el cuerpo, no el status code.
+
+2. RESPUESTA DE REGISTRO EXITOSO: "" (texto plano con comillas)
+   Al crear un usuario exitosamente, la API retorna el texto literal ""
+   (dos comillas dobles), NO un JSON vacio. El Content-Type de la respuesta
+   es text/html, no application/json. Ademas incluye un salto de linea al
+   final (""\n). Solucion: usar .trim() antes de comparar:
+     * def bodyNormalizado = response.trim()
+     And match bodyNormalizado == '""'
+
+3. ACUMULACION DE PATH EN KARATE (bug comun)
+   Cuando un escenario hace 2 llamadas HTTP distintas usando "Given path",
+   Karate acumula los segmentos: signup + login = signup/login -> 404.
+   Solucion: declarar URLs completas en el Background:
+     * def signupUrl = baseUrl + '/signup'
+     * def loginUrl  = baseUrl + '/login'
+   Y usar "Given url signupUrl" en cada step.
+
+4. GENERACION DINAMICA DE USUARIOS PARA UNICIDAD
+   La API no permite duplicados. Para independencia entre escenarios se
+   implemento una funcion JS en karate-config.js:
+     generateRandomUser: function(prefix) {
+       var ts = new Date().getTime();
+       var ri = Math.floor(Math.random() * 90000) + 10000;
+       return prefix + '_' + ts + '_' + ri;
+     }
+   Garantiza que cada ejecucion sea independiente del estado previo.
+
+5. DATA DRIVEN: JSON vs CSV
+   JSON fue mas robusto y expresivo. CSV fue mas frágil (sensible a espacios
+   y codificacion). Ambos funcionaron correctamente con Scenario Outline.
+
+CONSIDERACIONES SOBRE LA API
+-----------------------------
+Lo que podria mejorar en la API de demoblaze:
+- Usar codigos HTTP adecuados (201, 409, 401) en vez de siempre 200
+- Respuesta de exito mas informativa (ej: {"message":"User created"})
+- Validacion de formato de entrada (minimo de caracteres, caracteres validos)
+- Rate limiting para prevenir registro masivo automatizado
+- Endpoint de logout y renovacion de token
+
+FORTALEZAS DE KARATE DETECTADAS
+---------------------------------
+- Sintaxis Gherkin nativa sin step definitions Java
+- JavaScript inline en los features
+- karate-config.js como configuracion centralizada por ambiente
+- Reporte HTML integrado sin plugins adicionales
+- Soporte de JSON, XML, GraphQL en un mismo framework
+
+RESULTADO FINAL
+---------------
+Tests run: 26, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+
+signup.feature: 6 escenarios -> 6 PASADOS
+login.feature:  7 escenarios -> 7 PASADOS
+
+Autor: Ronald - QA Automation Engineer
+Fecha: Noviembre 2026
+

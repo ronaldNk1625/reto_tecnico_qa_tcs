@@ -5,47 +5,56 @@ Feature: Pruebas automatizadas del servicio REST Signup (/signup) en Demoblaze
   Para validar la creacion de nuevos usuarios y el control de duplicados
 
   Background:
-    * url baseUrl
-    * path 'signup'
-    * header Content-Type = 'application/json'
-    * header Accept = 'application/json'
+    * def signupUrl = baseUrl + '/signup'
     * def randomUserGen = generateRandomUser
 
   @CrearNuevoUsuario @Smoke
   Scenario: Caso 1: Crear un nuevo usuario exitosamente en signup
-    # Entradas dinamicas para garantizar unicidad
+    # Entradas dinamicas para garantizar unicidad en cada ejecucion
     * def nuevoUsuario = randomUserGen('signup_user')
     * def claveUsuario = defaultPassword
-    * def payload = { username: nuevoUsuario, password: claveUsuario }
+    * def payload = { username: '#(nuevoUsuario)', password: '#(claveUsuario)' }
 
     # Auditoria de entradas
     * karate.log('--> ENTRADA ENVIADA AL SERVICIO /signup:', payload)
 
-    Given request payload
+    Given url signupUrl
+    And header Content-Type = 'application/json'
+    And header Accept = 'application/json'
+    And request payload
     When method post
     Then status 200
 
     # Auditoria de salidas
     * karate.log('<-- SALIDA CAPTURADA DEL SERVICIO /signup:', response)
 
-    # Validacion: La API de Demoblaze responde con un string vacio "" al registrar exitosamente
-    And match response == '""'
+    # Validacion: La API de Demoblaze responde con string literal "" al registrar exitosamente
+    # La respuesta llega como texto plano con posible whitespace; se normaliza antes de comparar
+    * def bodyNormalizado = response.trim()
+    And match bodyNormalizado == '""'
 
   @UsuarioExistente @Regresion
   Scenario: Caso 2: Intentar crear un usuario que ya existe en el sistema
-    # 1. Registrar el usuario inicial
+    # 1. Registrar el usuario inicial con nombre unico
     * def usuarioExistente = randomUserGen('existing_user')
-    * def payloadInicial = { username: usuarioExistente, password: defaultPassword }
-    
-    Given request payloadInicial
+    * def payloadInicial = { username: '#(usuarioExistente)', password: '#(defaultPassword)' }
+
+    Given url signupUrl
+    And header Content-Type = 'application/json'
+    And header Accept = 'application/json'
+    And request payloadInicial
     When method post
     Then status 200
-    And match response == '""'
+    * def bodyNorm1 = response.trim()
+    And match bodyNorm1 == '""'
     * karate.log('Usuario inicial registrado exitosamente:', usuarioExistente)
 
-    # 2. Intentar registrar el mismo usuario nuevamente
+    # 2. Intentar registrar el mismo usuario nuevamente (duplicado)
     * karate.log('--> ENTRADA DE REINTENTO (DUPLICADO):', payloadInicial)
-    Given request payloadInicial
+    Given url signupUrl
+    And header Content-Type = 'application/json'
+    And header Accept = 'application/json'
+    And request payloadInicial
     When method post
     Then status 200
 
@@ -58,18 +67,26 @@ Feature: Pruebas automatizadas del servicio REST Signup (/signup) en Demoblaze
 
   @OutlineSignup @DataDrivenJson
   Scenario Outline: Intento de registro duplicado consumiendo datos externos desde archivo JSON (<id>)
-    # Se genera y registra un usuario previo
+    # Se genera un usuario unico y se registra por primera vez
     * def userTest = randomUserGen('json_user')
-    * def primerRegistro = { username: userTest, password: '<password>' }
-    
-    Given request primerRegistro
+    * def primerRegistro = { username: '#(userTest)', password: '<password>' }
+
+    * karate.log('Ejecutando caso Outline JSON: <description>')
+    Given url signupUrl
+    And header Content-Type = 'application/json'
+    And header Accept = 'application/json'
+    And request primerRegistro
     When method post
     Then status 200
+    * def bodyNormJson1 = response.trim()
+    And match bodyNormJson1 == '""'
 
-    # Segundo intento con el mismo usuario
-    * karate.log('Ejecutando caso Outline JSON: <description>')
-    * def intentoDuplicado = { username: userTest, password: '<password>' }
-    Given request intentoDuplicado
+    # Segundo intento con el mismo usuario genera error de duplicado
+    * def intentoDuplicado = { username: '#(userTest)', password: '<password>' }
+    Given url signupUrl
+    And header Content-Type = 'application/json'
+    And header Accept = 'application/json'
+    And request intentoDuplicado
     When method post
     Then status <expectedStatus>
     And match response.errorMessage == '<expectedErrorMessage>'
@@ -79,20 +96,29 @@ Feature: Pruebas automatizadas del servicio REST Signup (/signup) en Demoblaze
 
   @OutlineSignup @DataDrivenCsv
   Scenario Outline: Intento de registro duplicado consumiendo datos externos desde archivo CSV (<id>)
+    # Se genera un usuario unico y se registra por primera vez
     * def userCsvTest = randomUserGen('csv_user')
-    * def primerRegistroCsv = { username: userCsvTest, password: '<password>' }
-    
-    Given request primerRegistroCsv
-    When method post
-    Then status 200
+    * def primerRegistroCsv = { username: '#(userCsvTest)', password: '<password>' }
 
     * karate.log('Ejecutando caso Outline CSV: <description>')
-    * def intentoDuplicadoCsv = { username: userCsvTest, password: '<password>' }
-    Given request intentoDuplicadoCsv
+    Given url signupUrl
+    And header Content-Type = 'application/json'
+    And header Accept = 'application/json'
+    And request primerRegistroCsv
+    When method post
+    Then status 200
+    * def bodyNormCsv1 = response.trim()
+    And match bodyNormCsv1 == '""'
+
+    # Segundo intento con el mismo usuario genera error de duplicado
+    * def intentoDuplicadoCsv = { username: '#(userCsvTest)', password: '<password>' }
+    Given url signupUrl
+    And header Content-Type = 'application/json'
+    And header Accept = 'application/json'
+    And request intentoDuplicadoCsv
     When method post
     Then status <expectedStatus>
     And match response.errorMessage == '<expectedErrorMessage>'
 
     Examples:
       | read('classpath:data/signup_cases.csv') |
-
