@@ -1,0 +1,4 @@
+id,description,password,expectedStatus,expectedErrorMessage
+TC_SIGNUP_CSV_01,Intento de duplicacion desde CSV 1,PassCsv123!,200,This user already exist.
+TC_SIGNUP_CSV_02,Intento de duplicacion desde CSV 2,PassCsv456!,200,This user already exist.
+

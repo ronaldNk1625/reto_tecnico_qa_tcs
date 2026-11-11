@@ -1,0 +1,19 @@
+[
+  {
+    "id": "TC_LOGIN_01",
+    "description": "Usuario inexistente en el sistema",
+    "username": "inexistent_user_qa_99999",
+    "password": "Password123!",
+    "expectedStatus": 200,
+    "expectedMessage": "User does not exist."
+  },
+  {
+    "id": "TC_LOGIN_02",
+    "description": "Usuario con formato invalido o vacio",
+    "username": "user_not_found_demoblaze_888",
+    "password": "WrongPassword456!",
+    "expectedStatus": 200,
+    "expectedMessage": "User does not exist."
+  }
+]
+

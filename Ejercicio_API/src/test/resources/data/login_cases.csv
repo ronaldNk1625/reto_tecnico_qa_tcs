@@ -1,0 +1,4 @@
+id,description,username,password,expectedStatus,expectedMessage
+TC_LOGIN_CSV_01,Usuario inexistente desde CSV,csv_inexistent_user_qa_123,RandomPass789!,200,User does not exist.
+TC_LOGIN_CSV_02,Segundo usuario inexistente desde CSV,csv_fake_account_qa_456,AnotherPass321!,200,User does not exist.
+

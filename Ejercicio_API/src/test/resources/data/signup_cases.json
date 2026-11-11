@@ -1,0 +1,17 @@
+[
+  {
+    "id": "TC_SIGNUP_DUP_01",
+    "description": "Intento de registro con usuario existente lote 1",
+    "password": "PasswordTest123!",
+    "expectedStatus": 200,
+    "expectedErrorMessage": "This user already exist."
+  },
+  {
+    "id": "TC_SIGNUP_DUP_02",
+    "description": "Intento de registro con usuario existente lote 2",
+    "password": "PasswordTest456!",
+    "expectedStatus": 200,
+    "expectedErrorMessage": "This user already exist."
+  }
+]
+
