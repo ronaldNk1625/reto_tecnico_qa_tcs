@@ -1,0 +1,31 @@
+[
+  {
+    "id": "TC01",
+    "descripcion": "Compra exitosa de dos telefonos celulares",
+    "producto1": "Samsung galaxy s6",
+    "producto2": "Nokia lumia 1520",
+    "cliente": {
+      "nombre": "Ronald Berrones",
+      "pais": "Ecuador",
+      "ciudad": "Riobamba",
+      "tarjeta": "1234567890123456",
+      "mes": "06",
+      "anio": "2026"
+    }
+  },
+  {
+    "id": "TC02",
+    "descripcion": "Compra exitosa de telefono y smartphone alternativo",
+    "producto1": "Nexus 6",
+    "producto2": "Sony xperia z5",
+    "cliente": {
+      "nombre": "Maria Gomez",
+      "pais": "Colombia",
+      "ciudad": "Bogota",
+      "tarjeta": "9876543210987654",
+      "mes": "11",
+      "anio": "2025"
+    }
+  }
+]
+

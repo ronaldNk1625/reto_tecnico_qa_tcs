@@ -1,0 +1,125 @@
+================================================================================
+CONCLUSIONES Y HALLAZGOS TECNICOS DEL EJERCICIO E2E - DEMOBLAZE
+================================================================================
+Proyecto: Demoblaze E2E Automation - Serenity BDD Screenplay
+Candidato: Ronald Berrones
+Empresa / Cliente: Banco Pichincha - TCS (Tata Consultancy Services)
+Fecha: Noviembre 2026
+URL Bajo Prueba: https://www.demoblaze.com/
+================================================================================
+
+--------------------------------------------------------------------------------
+1. RESUMEN DE LA EJECUCION
+--------------------------------------------------------------------------------
+Se ejecutaron exitosamente 5 casos de prueba correspondientes a:
+ - Escenario Base (Smoke): Flujo completo de compra con dos productos.
+ - Escenarios Outline (Data-Driven nativo): Parametrizacion con diferentes
+   dispositivos, nombres de clientes y numeros de tarjetas.
+ - Escenario con consumo externo JSON: Carga dinamica desde datos_compra.json.
+ - Escenario con consumo externo CSV: Carga dinamica desde datos_compra.csv.
+
+Resultado consolidado: 100% de pruebas pasadas (5/5 passing, 0 fallidas).
+
+--------------------------------------------------------------------------------
+2. HALLAZGOS OBSERVADOS EN LA APLICACION (SITIO BAJO PRUEBA)
+--------------------------------------------------------------------------------
+A lo largo de la construccion y ejecucion de la suite automatizada sobre la
+plataforma Demoblaze, se identificaron los siguientes aspectos de diseño,
+arquitectura y comportamiento funcional:
+
+1. Arquitectura SPA y Llamadas Asincronas (AJAX):
+   Demoblaze funciona como una aplicacion de una sola pagina (SPA). Cada accion
+   critica (cargar productos, agregar al carrito, obtener items del carrito y
+   enviar orden) se realiza mediante peticiones XMLHttpRequest / Fetch hacia la
+   API backend (https://api.demoblaze.com/). Esto genera un desfase temporal
+   entre la accion del usuario en el DOM y la respuesta del servidor, haciendo
+   imprescindible una politica estricta de esperas explicitas basadas en eventos
+   y estados de elementos (evitando condiciones de carrera o 'race conditions').
+
+2. Alertas Nativas del Navegador (window.alert):
+   Al agregar un producto al carrito, la aplicacion dispara una alerta nativa
+   de JavaScript con el texto "Product added".
+   En la automatizacion con Selenium/WebDriver:
+   - Las alertas nativas congelan el contexto del navegador e impiden cualquier
+     interaccion posterior sobre el DOM.
+   - Si no se captura y acepta la alerta, Selenium lanza inmediatamente la
+     excepcion 'UnhandledAlertException'.
+   - Solucion implementada: Se creo la interaccion personalizada 'AcceptAlert'
+     en la capa Interactions de Screenplay, la cual utiliza 'WebDriverWait' y
+     'ExpectedConditions.alertIsPresent()', extrayendo el mensaje para auditoria
+     en el reporte y aceptando el dialogo de forma segura.
+
+3. Sincronizacion en la Carga de la Tabla del Carrito:
+   Al navegar a la seccion 'Cart' (cart.html), la tabla de productos permanece
+   vacia durante unos milisegundos mientras la peticion AJAX hacia
+   api.demoblaze.com/viewcart responde y puebla el tbody (#tbodyid).
+   Una verificacion prematura sin espera explicita provocaria una falsa asercion
+   de carrito vacio. Se resolvio esperando explicitamente que la fila del
+   producto (CartPage.PRODUCT_ROWS) se encuentre visible antes de inspeccionar
+   el texto y calcular los totales.
+
+4. Modales Mixtos (Bootstrap vs SweetAlert):
+   - El formulario de compra se abre dentro de un modal estandar de Bootstrap
+     (#orderModal), requiriendo validacion sobre el contenedor interactivo.
+   - El mensaje final de exito se muestra mediante una ventana emergente de la
+     libreria SweetAlert (.sweet-alert). Esta ventana emergente presenta una
+     animacion CSS de transicion ('fade in'). Para evitar aserciones fallidas
+     sobre elementos aun no renderizados, se orquestaron esperas sobre el
+     titulo h2 del modal de confirmacion.
+
+5. Observaciones de Seguridad y Calidad del Software en Demoblaze:
+   - Permite completar transacciones de compra a usuarios anonimos sin obligar
+     al registro o inicio de sesion (signup / login).
+   - El formulario de compra no implementa mascaras ni validaciones de backend
+     estrictas para el numero de tarjeta de credito (permite cualquier cadena
+     numerica y carece de codigo de seguridad CVV).
+   - No existe confirmacion ni pasarela de pagos real conectada, actuando como
+     un mock transaccional con fines demostrativos.
+
+--------------------------------------------------------------------------------
+3. CONSIDERACIONES ARQUITECTONICAS Y BUENAS PRACTICAS APLICADAS
+--------------------------------------------------------------------------------
+1. Patron Screenplay vs Page Object Model:
+   Se selecciono e implemento Screenplay Pattern debido a que en proyectos
+   financieros y bancarios de gran escala, el clasico Page Object Model tiende
+   a derivar en clases gigantes ('God Objects') y dependencias circulares.
+   Screenplay divide las responsabilidades en:
+   - Actor: Sujeto que ejecuta la accion guiado por metas de negocio.
+   - Tasks: Tareas orquestadas de alto nivel (comportamiento de usuario).
+   - Interactions: Acciones tecnicas atomicas (clicks, waits, alertas).
+   - Questions: Aserciones desacopladas de la logica de ejecucion.
+   - User Interfaces: Targets centralizados y reutilizables.
+
+2. Enfoque BDD con Gherkin Optimizados:
+   Los features fueron redactados en lenguaje natural orientado a intenciones
+   de negocio, evitando tecnicismos como "hacer clic en el boton X con id Y",
+   lo cual preserva el valor de la documentacion viva ('Living Documentation').
+
+3. Estrategia Data-Driven Multi-Fuente:
+   El diseno soporta tres modalidades de datos:
+   a) Tablas de Ejemplos en Gherkin para pruebas de regresion y humo.
+   b) Consumo dinamico desde JSON mediante Jackson ObjectMapper.
+   c) Consumo dinamico desde CSV mediante OpenCSV.
+   Esto permite desacoplar los datos de prueba del codigo fuente, permitiendo
+   que analistas funcionales suministren matrices de datos sin recompilar.
+
+4. Reportes Ejecutivos y Tecnicos:
+   - Serenity BDD Living Documentation: Genera un reporte web enriquecido con
+     capturas de pantalla en cada transicion, analisis de tiempos y arbol de
+     ejecucion del actor.
+   - Cucumber HTML & JSON Reports: Generados simultaneamente en target/cucumber-reports
+     para integracion nativa en pipelines CI/CD.
+
+--------------------------------------------------------------------------------
+4. RECOMENDACIONES PARA EL EQUIPO DE DESARROLLO Y QA
+--------------------------------------------------------------------------------
+- Incorporar atributos estables de automatizacion como 'data-testid' o
+  'data-cy' en el codigo fuente HTML para desacoplar los localizadores de
+  clases de diseno o estructura de tablas que puedan cambiar con futuros redisenos.
+- Fortalecer las validaciones del lado del cliente en el formulario de compra
+  (validacion de longitud de tarjeta, fecha de expiracion valida, nombres no vacios).
+- Integrar la ejecucion de esta suite dentro de un pipeline continuo (CI/CD)
+  en Jenkins / GitHub Actions / Azure DevOps ejecutandose en modo Headless
+  tras cada despliegue a los ambientes de Staging o QA.
+================================================================================
+
