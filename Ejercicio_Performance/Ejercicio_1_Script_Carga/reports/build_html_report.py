@@ -405,3 +405,4 @@ with open(output_html, 'w', encoding='utf-8') as f:
     f.write(html)
 
 print(f"Reporte HTML generado exitosamente en: {output_html}")
+

@@ -178,3 +178,4 @@ Con el fin de certificar el servicio para su paso a producción, se recomienda e
 **Firma:**  
 *Ronald Berrones — QA Automation & Performance Engineer*  
 *TCS / Banco Pichincha*
+

@@ -36,3 +36,4 @@ Abra el archivo: Ejercicio_2_Analisis_Resultados/InformeResultados.doc
 
 Candidato: Ronald Berrones - QA Automation & Performance Engineer
 Fecha: Noviembre 2026 - TCS / Banco Pichincha
+

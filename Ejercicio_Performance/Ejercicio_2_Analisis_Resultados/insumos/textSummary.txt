@@ -25,3 +25,4 @@
   y_failed_request_stage_1_HTTP4xx...: 769     0.203409/s
   y_failed_request_stage_1_HTTP5xx...: 5987    1.583625/s
   y_failed_request_stage_2_HTTP5xx...: 2       0.000529/s
+

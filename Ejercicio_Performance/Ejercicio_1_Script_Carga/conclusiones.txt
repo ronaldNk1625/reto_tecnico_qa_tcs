@@ -89,3 +89,4 @@ JSON estructurado y Dashboard HTML interactivo).
 Candidato: Ronald Berrones - QA Automation & Performance Engineer
 Fecha: Noviembre 2026
 TCS / Banco Pichincha
+

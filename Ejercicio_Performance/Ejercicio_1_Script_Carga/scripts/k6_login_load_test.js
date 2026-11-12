@@ -91,3 +91,4 @@ export function handleSummary(data) {
     stdout: textSummary(data, { indent: ' ', enableColors: true }),
   };
 }
+

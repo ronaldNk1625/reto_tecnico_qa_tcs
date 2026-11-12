@@ -362,3 +362,4 @@ doc.save(out_docx)
 shutil.copyfile(out_docx, out_doc)
 print(f"Documento DOCX generado: {out_docx}")
 print(f"Documento DOC generado: {out_doc}")
+

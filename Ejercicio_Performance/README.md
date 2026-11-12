@@ -117,3 +117,4 @@ El documento oficial solicitado es **[`InformeResultados.doc`](Ejercicio_2_Anali
 
 **Autor:** Ronald Berrones — QA Automation & Performance Engineer  
 **Entidad:** Banco Pichincha / TCS — Noviembre 2026
+
