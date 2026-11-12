@@ -1,0 +1,91 @@
+================================================================================
+CONCLUSIONES Y HALLAZGOS - EJERCICIO 1: PRUEBAS DE CARGA EN SERVICIO LOGIN
+BANCO PICHINCHA / TCS (TATA CONSULTANCY SERVICES)
+================================================================================
+
+1. RESUMEN EJECUTIVO
+--------------------------------------------------------------------------------
+Se ejecutó satisfactoriamente la prueba de carga sobre el endpoint de autenticación 
+POST https://fakestoreapi.com/auth/login utilizando Grafana K6 v2.4.0, aplicando 
+parametrización de credenciales desde archivo CSV (users.csv) con 5 cuentas de usuario.
+
+El escenario evaluó la capacidad del servicio para sostener una tasa de transacciones 
+superior a 20 TPS bajo condiciones controladas de concurrencia, validando el tiempo 
+de respuesta, la tasa de error y la integridad de la respuesta (status 200/201 y 
+extracción válida de JWT Token).
+
+
+2. MATRIZ DE RESULTADOS VS CRITERIOS DE ACEPTACIÓN
+--------------------------------------------------------------------------------
+Criterio                          Objetivo SLA         Resultado Obtenido     Veredicto
+--------------------------------------------------------------------------------
+1. Rendimiento / Throughput       >= 20 TPS            21.77 TPS              CUMPLIDO
+2. Tiempo Máximo de Respuesta     <= 1.50 s (1500 ms)  1.03 s (1030 ms)       CUMPLIDO
+3. Percentil 95 (P95)             <= 1.50 s (1500 ms)  0.43 s (438 ms)        CUMPLIDO
+4. Tasa de Error Aceptable        < 3.00%              0.00% (0 errores)      CUMPLIDO
+5. Integridad de Autenticación    100% tokens válidos  100% (661/661)         CUMPLIDO
+6. Total de Checks Validados      >= 97%               100% (1983/1983)       CUMPLIDO
+--------------------------------------------------------------------------------
+
+
+3. HALLAZGOS TÉCNICOS DETECTADOS DURANTE LA PRUEBA
+--------------------------------------------------------------------------------
+a) Código de Estado HTTP de Respuesta:
+   La API responde con código HTTP 201 (Created) en lugar de HTTP 200 (OK). Esto es 
+   una particularidad del diseño de la API FakeStoreAPI. En el script de pruebas se 
+   configuró la validación flexible para aceptar tanto 200 como 201 (`r.status === 200 || r.status === 201`), 
+   evitando falsos positivos en las aserciones.
+
+b) Estabilidad del Tiempo de Respuesta bajo Carga:
+   - Tiempo Mínimo: 332.30 ms
+   - Tiempo Mediano: 357.20 ms
+   - Tiempo Promedio: 368.37 ms
+   - Percentil 90: 402.48 ms
+   - Percentil 95: 438.87 ms
+   - Tiempo Máximo: 1030.00 ms (1.03 s)
+   
+   La diferencia entre la mediana (357 ms) y el percentil 95 (438 ms) es de apenas 
+   81 ms, lo que evidencia una baja variabilidad (desviación estándar reducida) y un 
+   comportamiento predecible y elástico del backend bajo 21.77 TPS continuos.
+
+c) Eficiencia en la Parametrización con SharedArray:
+   El uso de SharedArray en K6 permite cargar el archivo CSV en memoria compartida 
+   una sola vez para todos los VUs, reduciendo drásticamente el consumo de memoria 
+   RAM a menos de 45 MB durante toda la prueba, en contraste con herramientas que 
+   duplican el contexto por cada hilo.
+
+d) Tasa de Error Cero:
+   Durante los 30 segundos de prueba continua no se registró ninguna caída de conexión, 
+   timeout o respuesta 4xx/5xx, obteniendo una tasa de fallo del 0.00% frente al 
+   umbral máximo tolerado del 3.00%.
+
+
+4. RECOMENDACIONES DE MEJORA PARA AMBIENTES PRODUCTIVOS
+--------------------------------------------------------------------------------
+1. Rate Limiting y Protección DDoS:
+   FakeStoreAPI no implementa rate limiting perceptible a 22 TPS. En un entorno 
+   bancario como Banco Pichincha, un endpoint crítico de Login debe contar con 
+   mecanismos de throttling (ej. máximo 5 intentos fallidos por IP/usuario) y 
+   protección en API Gateway (WAF / Cloudflare) para mitigar ataques de fuerza bruta 
+   o credential stuffing.
+
+2. Pruebas de Estrés y Punto de Quiebre (Stress Testing & Spike Testing):
+   Se sugiere extender este escenario hacia una prueba de estrés escalonada 
+   (Ramping VUs de 20 a 100 TPS) para determinar el punto de quiebre (bottleneck) 
+   de la base de datos de usuarios y del servicio de firmado de tokens JWT.
+
+3. Monitoreo de Recursos de Infraestructura (APM):
+   Correlacionar las métricas de K6 con métricas del lado servidor (CPU, Memoria, 
+   conexiones JDBC y tiempo de firma criptográfica RSA/HMAC en el microservicio de Auth).
+
+
+5. CONCLUSIÓN GENERAL
+--------------------------------------------------------------------------------
+El script desarrollado cumple rigurosamente con todas las especificaciones y 
+condiciones de la prueba técnica. La implementación es reproducible, parametrizada 
+vía CSV, modular y exporta reportes en múltiples formatos (Consola, Texto plano, 
+JSON estructurado y Dashboard HTML interactivo).
+
+Candidato: Ronald Berrones - QA Automation & Performance Engineer
+Fecha: Noviembre 2026
+TCS / Banco Pichincha

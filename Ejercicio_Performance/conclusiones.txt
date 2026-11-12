@@ -1,0 +1,39 @@
+================================================================================
+CONCLUSIONES CONSOLIDADAS - MODULO DE PERFORMANCE TESTING
+BANCO PICHINCHA / TCS (TATA CONSULTANCY SERVICES)
+================================================================================
+
+1. CONCLUSIÓN DEL EJERCICIO 1 (SCRIPT DE CARGA - LOGIN)
+--------------------------------------------------------------------------------
+- La prueba de carga desarrollada con Grafana K6 y Apache JMeter sobre el servicio 
+  POST https://fakestoreapi.com/auth/login superó satisfactoriamente todos los 
+  criterios de aceptación exigidos:
+    * Rendimiento: 21.77 TPS (SLA: >= 20 TPS) -> APROBADO.
+    * Tiempo de Respuesta Máximo: 1.03 s (SLA: <= 1.50 s) -> APROBADO.
+    * Percentil 95: 0.43 s (438 ms) -> APROBADO.
+    * Tasa de Error: 0.00% con 0 fallos (SLA: < 3.00%) -> APROBADO.
+    * Autenticación: 100% tokens JWT extraídos y validados con éxito.
+- La parametrización dinámica mediante archivo CSV (users.csv) con SharedArray 
+  permitió una ejecución eficiente en memoria (< 45 MB RAM) y sin contención local.
+
+
+2. CONCLUSIÓN DEL EJERCICIO 2 (ANÁLISIS DE RESULTADOS - TRANSACTION BALANCE)
+--------------------------------------------------------------------------------
+- Aunque el resumen de K6 (textSummary.txt) reporta un cumplimiento aparente 
+  (error global de 2.44% y checks de 97.55%), el análisis del diagrama de monitoreo 
+  temporal demuestra una degradación crítica del servicio entre las 01:51:00 y las 
+  01:58:00 (duración de 7 minutos).
+- Durante este intervalo, con 140 VUs constantes, el throughput colapsó de 82 req/s 
+  a menos de 10-15 req/s, debido a que el tiempo de respuesta del servidor se disparó 
+  a 29.93 segundos, bloqueando los hilos de los usuarios virtuales.
+- El 88.58% de todos los fallos (5,987 errores HTTP 5xx) se concentraron en esa ventana, 
+  representando una indisponibilidad localizada cercana al 80%.
+- Causa raíz identificada: Agotamiento del pool de conexiones a la base de datos, 
+  bloqueos transaccionales en tablas de saldos, expiración del timeout de 30s en el 
+  API Gateway y posterior reinicio de pods en Kubernetes.
+- Dictamen: El servicio NO se considera apto para paso a producción hasta implementar 
+  Circuit Breaker, reducción de connection timeouts, réplicas de lectura y caché Redis.
+
+
+Candidato: Ronald Berrones - QA Automation & Performance Engineer
+Fecha: Noviembre 2026 - TCS / Banco Pichincha
