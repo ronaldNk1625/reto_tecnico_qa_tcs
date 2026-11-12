@@ -139,3 +139,4 @@ Analizar los insumos de una prueba de carga de 65 minutos con 140 Usuarios Virtu
 **Autor:**  
 *Ronald Berrones — QA Automation & Performance Engineer*  
 *TCS / Banco Pichincha — Noviembre 2026*
+
